@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import './AdminPanel.css'
 
 export default function AdminPanel() {
@@ -13,11 +13,7 @@ export default function AdminPanel() {
   const [apiKey, setApiKey] = useState('')
   const [updatingStatus, setUpdatingStatus] = useState(null)
 
-  useEffect(() => {
-    fetchOrders()
-  }, [filter, statusFilter])
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setLoading(true)
     setError(null)
     
@@ -55,7 +51,11 @@ export default function AdminPanel() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filter, apiKey])
+
+  useEffect(() => {
+    fetchOrders()
+  }, [fetchOrders])
 
   const updateOrderStatus = async (orderId, newStatus) => {
     setUpdatingStatus(orderId)

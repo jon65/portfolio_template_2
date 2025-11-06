@@ -4,6 +4,18 @@ Copy this template to create your `.env.local` file:
 
 ```env
 # ============================================
+# Database Configuration (Supabase/PostgreSQL)
+# ============================================
+# Prisma will automatically use this connection string
+# Get your connection string from Supabase Dashboard > Settings > Database > Connection String
+# Use the "Connection pooling" connection string for serverless environments
+
+# Supabase Database URL (PostgreSQL)
+# Format: postgresql://[user]:[password]@[host]:[port]/[database]?[params]
+# For Supabase, use the connection pooling URL:
+DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@[PROJECT-REF].supabase.co:5432/postgres?pgbouncer=true&connection_limit=1
+
+# ============================================
 # Stripe Configuration
 # ============================================
 # Get keys from: https://dashboard.stripe.com/test/apikeys
@@ -109,6 +121,9 @@ NEXT_PUBLIC_STRIPE_TEST_MODE=false
 
 ## Quick Setup Checklist
 
+- [ ] Supabase project created
+- [ ] Database connection string obtained
+- [ ] Prisma schema migrated to database
 - [ ] Stripe account created
 - [ ] Stripe test keys obtained
 - [ ] Resend account created (for emails)

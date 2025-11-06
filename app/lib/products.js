@@ -1,115 +1,159 @@
 // Server-side product data fetching
-// Supports both external API and fallback to local data
+// Supports Prisma/Supabase database, external API, and fallback to local data
 
-// API Configuration
+import { prisma } from './prisma'
+import { products as localProducts, getProductById as getLocalProductById } from '../data/products'
+
+// Configuration: Priority order: Database > External API > Local data
+const USE_DATABASE = process.env.USE_PRODUCTS_DATABASE !== 'true' // Default to true if DATABASE_URL exists
 const API_BASE_URL = process.env.NEXT_PUBLIC_PRODUCTS_API_URL || process.env.PRODUCTS_API_URL || ''
 const USE_API = process.env.NEXT_PUBLIC_USE_PRODUCTS_API === 'true' || process.env.USE_PRODUCTS_API === 'true'
 
-// Fallback to local data if API is not configured
-import { products as localProducts, getProductById as getLocalProductById } from '../data/products'
-
 /**
- * Fetch all products from API
- * Falls back to local data if API is not configured or fails
+ * Fetch all products from database (Supabase via Prisma)
+ * Falls back to external API or local data if database is not available
  */
 export async function getProducts() {
-  // If API is not configured, use local data
-  if (!USE_API || !API_BASE_URL) {
-    console.log('Using local product data (API not configured)')
-    return Promise.resolve(localProducts)
-  }
+  // Try database first if configured
+  if (USE_DATABASE && process.env.DATABASE_URL) {
+    try {
+      const products = await prisma.product.findMany({
+        orderBy: {
+          id: 'asc',
+        },
+      })
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/products`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        // Add API key if needed
-        ...(process.env.PRODUCTS_API_KEY && {
-          'Authorization': `Bearer ${process.env.PRODUCTS_API_KEY}`,
-        }),
-      },
-      // Cache for 60 seconds in production
-      next: { revalidate: 60 },
-    })
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status} ${response.statusText}`)
+      if (products && products.length > 0) {
+        console.log(`Fetched ${products.length} products from database`)
+        // Transform Prisma results to match expected format
+        return products.map(product => ({
+          id: product.id,
+          category: product.category,
+          name: product.name,
+          price: product.price,
+          priceValue: product.priceValue,
+          description: product.description,
+          image: product.image,
+        }))
+      }
+    } catch (error) {
+      console.error('Failed to fetch products from database:', error)
+      console.log('Falling back to alternative data source')
     }
-
-    const data = await response.json()
-    
-    // Transform API response to match expected format
-    // Adjust this based on your API response structure
-    const products = Array.isArray(data) ? data : data.products || data.items || []
-    
-    // Ensure products have required fields
-    return products.map(product => ({
-      id: product.id,
-      category: product.category || 'Essentials',
-      name: product.name || product.title,
-      price: product.price || `$${product.priceValue || 0}`,
-      priceValue: product.priceValue || parseFloat(product.price?.replace('$', '') || 0),
-      description: product.description || '',
-      image: product.image || product.imageUrl || product.thumbnail || '/placeholder.jpg',
-    }))
-  } catch (error) {
-    console.error('Failed to fetch products from API:', error)
-    console.log('Falling back to local product data')
-    // Fallback to local data on error
-    return localProducts
   }
+
+  // Fallback to external API if configured
+  if (USE_API && API_BASE_URL) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/products`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(process.env.PRODUCTS_API_KEY && {
+            'Authorization': `Bearer ${process.env.PRODUCTS_API_KEY}`,
+          }),
+        },
+        // Cache for 60 seconds in production
+        next: { revalidate: 60 },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const products = Array.isArray(data) ? data : data.products || data.items || []
+        
+        console.log(`Fetched ${products.length} products from external API`)
+        return products.map(product => ({
+          id: product.id,
+          category: product.category || 'Essentials',
+          name: product.name || product.title,
+          price: product.price || `$${product.priceValue || 0}`,
+          priceValue: product.priceValue || parseFloat(product.price?.replace('$', '') || 0),
+          description: product.description || '',
+          image: product.image || product.imageUrl || product.thumbnail || '/placeholder.jpg',
+        }))
+      }
+    } catch (error) {
+      console.error('Failed to fetch products from API:', error)
+    }
+  }
+
+  // Final fallback to local data
+  console.log('Using local product data (database/API not available)')
+  return localProducts
 }
 
 /**
- * Fetch a single product by ID from API
- * Falls back to local data if API is not configured or fails
+ * Fetch a single product by ID from database (Supabase via Prisma)
+ * Falls back to external API or local data if database is not available
  */
 export async function getProduct(id) {
-  // If API is not configured, use local data
-  if (!USE_API || !API_BASE_URL) {
-    return Promise.resolve(getLocalProductById(id))
+  const productId = parseInt(id)
+
+  // Try database first if configured
+  if (USE_DATABASE && process.env.DATABASE_URL) {
+    try {
+      const product = await prisma.product.findUnique({
+        where: {
+          id: productId,
+        },
+      })
+
+      if (product) {
+        console.log(`Fetched product ${id} from database`)
+        return {
+          id: product.id,
+          category: product.category,
+          name: product.name,
+          price: product.price,
+          priceValue: product.priceValue,
+          description: product.description,
+          image: product.image,
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to fetch product ${id} from database:`, error)
+      console.log('Falling back to alternative data source')
+    }
   }
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        // Add API key if needed
-        ...(process.env.PRODUCTS_API_KEY && {
-          'Authorization': `Bearer ${process.env.PRODUCTS_API_KEY}`,
-        }),
-      },
-      // Cache for 60 seconds
-      next: { revalidate: 60 },
-    })
+  // Fallback to external API if configured
+  if (USE_API && API_BASE_URL) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(process.env.PRODUCTS_API_KEY && {
+            'Authorization': `Bearer ${process.env.PRODUCTS_API_KEY}`,
+          }),
+        },
+        // Cache for 60 seconds
+        next: { revalidate: 60 },
+      })
 
-    if (!response.ok) {
-      if (response.status === 404) {
+      if (response.ok) {
+        const product = await response.json()
+        console.log(`Fetched product ${id} from external API`)
+        return {
+          id: product.id,
+          category: product.category || 'Essentials',
+          name: product.name || product.title,
+          price: product.price || `$${product.priceValue || 0}`,
+          priceValue: product.priceValue || parseFloat(product.price?.replace('$', '') || 0),
+          description: product.description || '',
+          image: product.image || product.imageUrl || product.thumbnail || '/placeholder.jpg',
+        }
+      } else if (response.status === 404) {
         return null
       }
-      throw new Error(`API error: ${response.status} ${response.statusText}`)
+    } catch (error) {
+      console.error(`Failed to fetch product ${id} from API:`, error)
     }
-
-    const product = await response.json()
-    
-    // Transform API response to match expected format
-    return {
-      id: product.id,
-      category: product.category || 'Essentials',
-      name: product.name || product.title,
-      price: product.price || `$${product.priceValue || 0}`,
-      priceValue: product.priceValue || parseFloat(product.price?.replace('$', '') || 0),
-      description: product.description || '',
-      image: product.image || product.imageUrl || product.thumbnail || '/placeholder.jpg',
-    }
-  } catch (error) {
-    console.error(`Failed to fetch product ${id} from API:`, error)
-    console.log('Falling back to local product data')
-    // Fallback to local data on error
-    return getLocalProductById(id)
   }
+
+  // Final fallback to local data
+  console.log(`Using local product data for product ${id}`)
+  return getLocalProductById(id)
 }
 
 

@@ -25,3 +25,4 @@ function QuickAddButton({ product }) {
 export default QuickAddButton
 
 
+

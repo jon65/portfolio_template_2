@@ -1,20 +1,37 @@
-// In-memory storage for orders (replace with database in production)
-// This is a simple in-memory store. In production, use a database.
+// Hybrid storage: Use database if available, fallback to in-memory storage
+import {
+  storeOrderInDatabase,
+  updateOrderStatusInDatabase,
+  getOrdersFromDatabase,
+  getOrderMetricsFromDatabase,
+  isDatabaseAvailable,
+} from './order-storage-db'
+
+// In-memory storage for orders (fallback when database is not available)
 let ordersStorage = []
 
 /**
- * Store order in memory (for internal storage)
- * In production, replace with database operations
+ * Store order (database if available, otherwise in-memory)
  */
-export function storeOrderInMemory(orderData) {
-  // Add timestamp if not present
-  if (!orderData.createdAt) {
-    orderData.createdAt = new Date().toISOString()
-  }
-  
+export async function storeOrderInMemory(orderData) {
   // Set default order status if not present
   if (!orderData.orderStatus) {
     orderData.orderStatus = 'ordered'
+  }
+  
+  // Try database first if available
+  if (isDatabaseAvailable()) {
+    try {
+      return await storeOrderInDatabase(orderData)
+    } catch (error) {
+      console.error('Database storage failed, falling back to in-memory:', error)
+      // Fall through to in-memory storage
+    }
+  }
+  
+  // Fallback to in-memory storage
+  if (!orderData.createdAt) {
+    orderData.createdAt = new Date().toISOString()
   }
   
   ordersStorage.push(orderData)
@@ -28,9 +45,20 @@ export function storeOrderInMemory(orderData) {
 }
 
 /**
- * Update order status
+ * Update order status (database if available, otherwise in-memory)
  */
-export function updateOrderStatus(orderId, newStatus) {
+export async function updateOrderStatus(orderId, newStatus) {
+  // Try database first if available
+  if (isDatabaseAvailable()) {
+    try {
+      return await updateOrderStatusInDatabase(orderId, newStatus)
+    } catch (error) {
+      console.error('Database update failed, falling back to in-memory:', error)
+      // Fall through to in-memory storage
+    }
+  }
+  
+  // Fallback to in-memory storage
   const orderIndex = ordersStorage.findIndex(order => order.orderId === orderId)
   
   if (orderIndex === -1) {
@@ -48,10 +76,20 @@ export function updateOrderStatus(orderId, newStatus) {
 }
 
 /**
- * Get orders from memory
- * In production, replace with database query
+ * Get orders (database if available, otherwise from memory)
  */
-export function getOrdersFromMemory(options = {}) {
+export async function getOrdersFromMemory(options = {}) {
+  // Try database first if available
+  if (isDatabaseAvailable()) {
+    try {
+      return await getOrdersFromDatabase(options)
+    } catch (error) {
+      console.error('Database query failed, falling back to in-memory:', error)
+      // Fall through to in-memory storage
+    }
+  }
+  
+  // Fallback to in-memory storage
   const { orderId, limit = 100, offset = 0, testMode, orderStatus } = options
   
   let orders = [...ordersStorage]
@@ -93,9 +131,20 @@ export function getOrdersFromMemory(options = {}) {
 }
 
 /**
- * Get order metrics
+ * Get order metrics (database if available, otherwise from memory)
  */
-export function getOrderMetrics(options = {}) {
+export async function getOrderMetrics(options = {}) {
+  // Try database first if available
+  if (isDatabaseAvailable()) {
+    try {
+      return await getOrderMetricsFromDatabase(options)
+    } catch (error) {
+      console.error('Database metrics query failed, falling back to in-memory:', error)
+      // Fall through to in-memory storage
+    }
+  }
+  
+  // Fallback to in-memory storage
   const { testMode } = options
   
   let orders = [...ordersStorage]

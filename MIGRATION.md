@@ -86,3 +86,4 @@ If you encounter issues:
 Your app is now ready to run with Next.js! 🚀
 
 
+

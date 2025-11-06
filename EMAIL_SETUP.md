@@ -157,3 +157,4 @@ Use Stripe test card: `4242 4242 4242 4242`
 See `app/lib/email.js` for the email sending logic and template.
 
 
+

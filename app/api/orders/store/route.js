@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { storeOrderInMemory } from '../../../lib/order-storage'
 
 /**
  * POST /api/orders/store
@@ -9,6 +10,11 @@ export async function POST(request) {
   try {
     const body = await request.json()
     const { storageType, orderData } = body
+
+    // Ensure orderStatus is set
+    if (!orderData.orderStatus) {
+      orderData.orderStatus = 'ordered'
+    }
 
     // Determine storage type from request or environment variable
     const finalStorageType = storageType || process.env.ORDER_STORAGE_TYPE || 'internal'
@@ -20,15 +26,27 @@ export async function POST(request) {
       const s3Bucket = process.env.AWS_S3_BUCKET
       const s3Region = process.env.AWS_S3_REGION || 'us-east-1'
       
-      return await handleS3Storage(orderData, s3Key, s3Bucket, s3Region)
+      const s3Result = await handleS3Storage(orderData, s3Key, s3Bucket, s3Region)
+      
+      // Also store internally for admin panel
+      storeOrderInMemory(orderData)
+      
+      return s3Result
     } else if (finalStorageType === 'database') {
-      return await handleDatabaseStorage(orderData)
+      const dbResult = await handleDatabaseStorage(orderData)
+      
+      // Also store internally for admin panel
+      storeOrderInMemory(orderData)
+      
+      return dbResult
     } else {
-      // Internal storage (default) - already handled by admin panel
+      // Internal storage (default) - store in memory
+      const result = storeOrderInMemory(orderData)
       return NextResponse.json({
         success: true,
         orderId: orderData.orderId,
-        message: 'Order stored internally (via admin panel)'
+        message: 'Order stored internally',
+        stored: result.stored
       })
     }
   } catch (error) {

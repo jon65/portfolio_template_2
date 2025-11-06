@@ -1,15 +1,69 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  orderId         String      @unique // Stripe payment intent ID or custom order ID
+  paymentIntentId String?     // Stripe payment intent ID
+  
+  // Customer Information
+  customerEmail   String
+  customerFirstName String
+  customerLastName  String
+  customerPhone    String?
+  
+  // Shipping Address
+  shippingAddress  String
+  shippingCity     String
+  shippingState    String
+  shippingZipCode  String
+  shippingCountry  String      @default("US")
+  
+  // Order Details
+  items            Json        // Array of order items (products with quantity, price, etc.)
+  subtotal         Float
+  shippingCost     Float       @default(10.0)
+  total            Float
+  
+  // Order Status
+  orderStatus      OrderStatus @default(ORDERED)
+  statusUpdatedAt  DateTime?
+  
+  // Metadata
+  isTestMode       Boolean     @default(false)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  
+  @@index([orderId])
+  @@index([customerEmail])
+  @@index([orderStatus])
+  @@index([createdAt])
+  @@index([isTestMode])
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  category    String
+  name        String
+  price       String   // Formatted price string like "$185"
+  priceValue  Float    // Numeric price value for calculations
+  description String   @default("")
+  image       String   @default("/placeholder.jpg")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([category])
+  @@index([name])
+}
+
+enum OrderStatus {
+  ORDERED
+  COURIERED
+  DELIVERED
 }

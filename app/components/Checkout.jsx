@@ -147,6 +147,7 @@ function CheckoutForm() {
             currency: 'usd',
             status: 'completed',
             paymentStatus: 'succeeded',
+            orderStatus: 'ordered', // Default order status
             createdAt: new Date(),
             isTestMode: true
           }
@@ -223,6 +224,7 @@ function CheckoutForm() {
             currency: paymentIntent.currency || 'usd',
             status: 'completed',
             paymentStatus: 'succeeded',
+            orderStatus: 'ordered', // Default order status
             createdAt: new Date(paymentIntent.created * 1000),
             isTestMode: false
           }

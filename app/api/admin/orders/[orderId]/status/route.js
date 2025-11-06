@@ -33,7 +33,7 @@ export async function PATCH(
     }
 
     // Update order status
-    const result = updateOrderStatus(orderId, status)
+    const result = await updateOrderStatus(orderId, status)
 
     if (!result.success) {
       return NextResponse.json(

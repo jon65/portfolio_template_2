@@ -50,6 +50,7 @@ export async function processSuccessfulOrder(paymentIntent, options = {}) {
       currency: currency || 'usd',
       status: 'completed',
       paymentStatus: 'succeeded',
+      orderStatus: 'ordered', // Default order status
       createdAt: new Date(created * 1000),
       isTestMode
     }
