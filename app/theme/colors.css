@@ -1,0 +1,35 @@
+/* Color Palette */
+:root {
+  /* Primary Colors */
+  --color-primary: #1a1a1a;
+  --color-white: #ffffff;
+  
+  /* Gray Scale */
+  --color-gray-dark: #1a1a1a;
+  --color-gray-medium: #666666;
+  --color-gray-light: #999999;
+  --color-gray-lighter: #e0e0e0;
+  --color-gray-border: #e5e5e5;
+  --color-gray-bg: #f5f5f5;
+  --color-gray-bg-light: #f9f9f9;
+  
+  /* Error Colors */
+  --color-error-bg: #fee;
+  --color-error-text: #c33;
+  --color-error-border: #fcc;
+  
+  /* Overlays */
+  --overlay-dark-light: rgba(0, 0, 0, 0.2);
+  --overlay-dark-medium: rgba(0, 0, 0, 0.3);
+  --overlay-white: rgba(255, 255, 255, 0.95);
+  
+  /* Semantic Colors */
+  --color-text-primary: var(--color-gray-dark);
+  --color-text-secondary: var(--color-gray-medium);
+  --color-text-tertiary: var(--color-gray-light);
+  --color-bg-primary: var(--color-white);
+  --color-bg-secondary: var(--color-gray-bg-light);
+  --color-border: var(--color-gray-border);
+}
+
+

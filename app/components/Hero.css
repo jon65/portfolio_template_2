@@ -1,0 +1,79 @@
+/* Hero Section */
+.hero {
+    height: 100vh;
+    /* To use a saved background image:
+     * 1. Create a 'public' folder in your project root (if it doesn't exist)
+     * 2. Place your image file in the public folder (e.g., hero-bg.jpg)
+     * 3. Reference it with: url('/hero-bg.jpg')
+     *    The leading '/' tells Next.js to look in the public folder
+     */
+    background: linear-gradient(var(--overlay-dark-light), var(--overlay-dark-medium)), 
+                url('/pickleball-court-graphic-template_1246009-4599.avif');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-top: var(--header-height);
+}
+
+.hero-content h1 {
+    font-family: var(--font-display);
+    font-size: var(--font-size-6xl);
+    font-weight: var(--font-weight-normal);
+    letter-spacing: var(--letter-spacing-hero);
+    text-transform: uppercase;
+    color: var(--color-white);
+    margin-bottom: var(--spacing-2xl);
+    line-height: var(--line-height-tight);
+}
+
+.cta-button {
+    display: inline-block;
+    padding: var(--button-padding-md);
+    border: var(--border-width-medium) solid var(--color-white);
+    color: var(--color-white);
+    text-decoration: none;
+    font-size: var(--font-size-base);
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+    transition: all 0.3s;
+    background: transparent;
+}
+
+.cta-button:hover {
+    background: var(--color-white);
+    color: var(--color-primary);
+}
+
+@media (max-width: 1024px) {
+    .hero-content h1 {
+        font-size: var(--font-size-5xl);
+    }
+}
+
+@media (max-width: 768px) {
+    .hero {
+        height: 70vh;
+        min-height: 500px;
+    }
+
+    .hero-content h1 {
+        font-size: var(--font-size-3xl);
+        padding: 0 var(--spacing-lg);
+        line-height: 1.2;
+    }
+
+    .cta-button {
+        padding: var(--spacing-md) var(--spacing-2xl);
+        font-size: var(--font-size-sm);
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-content h1 {
+        font-size: var(--font-size-2xl);
+    }
+}
+

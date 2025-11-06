@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Streetwear</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #1a1a1a;
+            background: #fff;
+        }
+
+        /* Header Styles */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 60px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .nav-left, .nav-right {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #1a1a1a;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-weight: 400;
+            transition: opacity 0.3s;
+        }
+
+        nav a:hover {
+            opacity: 0.6;
+        }
+
+        /* Dropdown Menu */
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: -60px;
+            background: white;
+            min-width: 800px;
+            padding: 40px 60px;
+            border: 1px solid #e5e5e5;
+            margin-top: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+        }
+
+        .dropdown-column h3 {
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .dropdown-column a {
+            display: block;
+            padding: 8px 0;
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.3)), 
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect fill="%23718096" width="1200" height="800"/></svg>');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        .hero-content h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 72px;
+            font-weight: 400;
+            letter-spacing: 12px;
+            text-transform: uppercase;
+            color: white;
+            margin-bottom: 40px;
+            line-height: 1.2;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 18px 60px;
+            border: 2px solid white;
+            color: white;
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            background: transparent;
+        }
+
+        .cta-button:hover {
+            background: white;
+            color: #1a1a1a;
+        }
+
+        /* Product Grid */
+        .product-section {
+            padding: 100px 60px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .filter-btn {
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: none;
+            border: 1px solid #1a1a1a;
+            padding: 12px 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+        }
+
+        .product-card {
+            text-decoration: none;
+            color: inherit;
+            transition: opacity 0.3s;
+        }
+
+        .product-card:hover {
+            opacity: 0.8;
+        }
+
+        .product-image {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #f5f5f5;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .placeholder-img {
+            width: 60%;
+            height: 60%;
+            background: #e0e0e0;
+        }
+
+        .product-info {
+            text-align: left;
+        }
+
+        .product-category {
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .product-name {
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 400;
+        }
+
+        .product-price {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Footer */
+        footer {
+            background: #f9f9f9;
+            padding: 80px 60px 40px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .footer-content {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 60px;
+            margin-bottom: 60px;
+        }
+
+        .footer-column h4 {
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .footer-column a {
+            display: block;
+            text-decoration: none;
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 12px;
+            transition: color 0.3s;
+        }
+
+        .footer-column a:hover {
+            color: #1a1a1a;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid #e5e5e5;
+            font-size: 11px;
+            color: #999;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 1024px) {
+            .product-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            nav {
+                padding: 20px 30px;
+            }
+            
+            .hero-content h1 {
+                font-size: 48px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-left, .nav-right {
+                gap: 20px;
+            }
+            
+            .dropdown-content {
+                min-width: 100vw;
+                left: -30px;
+                grid-template-columns: 1fr;
+            }
+            
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav>
+            <div class="nav-left">
+                <a href="#">Collection</a>
+                <div class="dropdown">
+                    <a href="#">Essentials</a>
+                    <div class="dropdown-content">
+                        <div class="dropdown-column">
+                            <h3>New Releases</h3>
+                            <a href="#">Latest Drops</a>
+                            <a href="#">Seasonal</a>
+                            <a href="#">Limited Edition</a>
+                        </div>
+                        <div class="dropdown-column">
+                            <h3>Shop Mens</h3>
+                            <a href="#">Tops</a>
+                            <a href="#">Bottoms</a>
+                            <a href="#">Outerwear</a>
+                            <a href="#">Accessories</a>
+                        </div>
+                        <div class="dropdown-column">
+                            <h3>Shop Womens</h3>
+                            <a href="#">Tops</a>
+                            <a href="#">Bottoms</a>
+                            <a href="#">Dresses</a>
+                            <a href="#">Accessories</a>
+                        </div>
+                    </div>
+                </div>
+                <a href="#">Athletics</a>
+            </div>
+            
+            <div class="logo">Your Brand</div>
+            
+            <div class="nav-right">
+                <a href="#">Search</a>
+                <a href="#">Account</a>
+                <a href="#">Bag</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Fall Winter Collection</h1>
+            <a href="#products" class="cta-button">Shop Now</a>
+        </div>
+    </section>
+
+    <!-- Product Section -->
+    <section class="product-section" id="products">
+        <div class="section-header">
+            <h2>Essentials</h2>
+            <button class="filter-btn">Filter +</button>
+        </div>
+        
+        <div class="product-grid">
+            <a href="#" class="product-card">
+                <div class="product-image">
+                    <div class="placeholder-img"></div>
+                </div>
+                <div class="product-info">
+                    <div class="product-category">Essentials</div>
+                    <div class="product-name">Oversized Hoodie</div>
+                    <div class="product-price">$185</div>
+                </div>
+            </a>
+            
+            <a href="#" class="product-card">
+                <div class="product-image">
+                    <div class="placeholder-img"></div>
+                </div>
+                <div class="product-info">
+                    <div class="product-category">Essentials</div>
+                    <div class="product-name">Relaxed Tee</div>
+                    <div class="product-price">$95</div>
+                </div>
+            </a>
+            
+            <a href="#" class="product-card">
+                <div class="product-image">
+                    <div class="placeholder-img"></div>
+                </div>
+                <div class="product-info">
+                    <div class="product-category">Essentials</div>
+                    <div class="product-name">Sweat Pants</div>
+                    <div class="product-price">$165</div>
+                </div>
+            </a>
+            
+            <a href="#" class="product-card">
+                <div class="product-image">
+                    <div class="placeholder-img"></div>
+                </div>
+                <div class="product-info">
+                    <div class="product-category">Collection</div>
+                    <div class="product-name">Knit Sweater</div>
+                    <div class="product-price">$345</div>
+                </div>
+            </a>
+            
+            <a href="#" class="product-card">
+                <div class="product-image">
+                    <div class="placeholder-img"></div>
+                </div>
+                <div class="product-info">
+                    <div class="product-category">Athletics</div>
+                    <div class="product-name">Track Jacket</div>
+                    <div class="product-price">$285</div>
+                </div>
+            </a>
+            
+            <a href="#" class="product-card">
+                <div class="product-image">
+                    <div class="placeholder-img"></div>
+                </div>
+                <div class="product-info">
+                    <div class="product-category">Essentials</div>
+                    <div class="product-name">Crew Neck</div>
+                    <div class="product-price">$125</div>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h4>Shop</h4>
+                <a href="#">New Arrivals</a>
+                <a href="#">Mens</a>
+                <a href="#">Womens</a>
+                <a href="#">Accessories</a>
+            </div>
+            
+            <div class="footer-column">
+                <h4>About</h4>
+                <a href="#">Our Story</a>
+                <a href="#">Sustainability</a>
+                <a href="#">Careers</a>
+                <a href="#">Press</a>
+            </div>
+            
+            <div class="footer-column">
+                <h4>Support</h4>
+                <a href="#">Contact Us</a>
+                <a href="#">Shipping</a>
+                <a href="#">Returns</a>
+                <a href="#">Size Guide</a>
+            </div>
+            
+            <div class="footer-column">
+                <h4>Connect</h4>
+                <a href="#">Instagram</a>
+                <a href="#">Twitter</a>
+                <a href="#">Facebook</a>
+                <a href="#">Newsletter</a>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            © 2025 Your Brand. All Rights Reserved.
+        </div>
+    </footer>
+</body>
+</html>
