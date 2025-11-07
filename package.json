@@ -10,13 +10,16 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "seed:admin": "node prisma/seed-admin.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.925.0",
     "@prisma/client": "^6.19.0",
     "@stripe/react-stripe-js": "^2.4.0",
     "@stripe/stripe-js": "^2.4.0",
+    "bcryptjs": "^3.0.3",
+    "jsonwebtoken": "^9.0.2",
     "next": "^14.0.4",
     "prisma": "^6.19.0",
     "react": "^18.2.0",

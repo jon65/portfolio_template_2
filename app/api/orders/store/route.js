@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { storeOrderInMemory } from '../../../lib/order-storage'
+import { storeOrderInDatabase } from '../../../lib/order-storage-db'
 
 /**
  * POST /api/orders/store
@@ -35,7 +36,7 @@ export async function POST(request) {
     } else if (finalStorageType === 'database') {
       const dbResult = await handleDatabaseStorage(orderData)
       
-      // Also store internally for admin panel
+      // Also store internally for admin panel (in-memory fallback)
       storeOrderInMemory(orderData)
       
       return dbResult
@@ -129,53 +130,52 @@ async function handleS3Storage(orderData, s3Key, s3Bucket, s3Region) {
 }
 
 /**
- * Handle Database storage
+ * Handle Database storage using Prisma (Supabase)
  */
 async function handleDatabaseStorage(orderData) {
   try {
-    const dbApiUrl = process.env.DATABASE_API_URL
-    const dbApiKey = process.env.DATABASE_API_KEY
-
-    if (!dbApiUrl) {
+    // Check if DATABASE_URL is configured (required for Prisma)
+    if (!process.env.DATABASE_URL) {
       return NextResponse.json(
-        { error: 'DATABASE_API_URL not configured' },
+        { error: 'DATABASE_URL not configured. Please set DATABASE_URL in your environment variables.' },
         { status: 500 }
       )
     }
 
-    // Prepare headers
-    const headers = {
-      'Content-Type': 'application/json',
+    // Ensure orderStatus is set before storing
+    if (!orderData.orderStatus) {
+      orderData.orderStatus = 'ordered'
     }
 
-    if (dbApiKey) {
-      headers['Authorization'] = `Bearer ${dbApiKey}`
-    }
+    // Use Prisma to store order in Supabase
+    const result = await storeOrderInDatabase(orderData)
 
-    // Send order to database API
-    const response = await fetch(dbApiUrl, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(orderData),
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`Database API error: ${response.status} - ${errorText}`)
-    }
-
-    const result = await response.json()
-
-    console.log(`Order stored in database: ${orderData.orderId}`)
+    console.log(`Order stored in Supabase via Prisma: ${orderData.orderId} (Database ID: ${result.id})`)
 
     return NextResponse.json({
       success: true,
-      orderId: orderData.orderId,
-      databaseId: result.id || result.orderId,
-      message: 'Order stored successfully in database'
+      orderId: result.orderId,
+      databaseId: result.id,
+      message: 'Order stored successfully in Supabase database'
     })
   } catch (error) {
     console.error('Database storage error:', error)
+    
+    // Handle Prisma-specific errors
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { error: `Order with ID ${orderData.orderId} already exists in database` },
+        { status: 409 }
+      )
+    }
+    
+    if (error.code === 'P2003') {
+      return NextResponse.json(
+        { error: 'Invalid data: Referenced record does not exist' },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
       { error: `Database storage failed: ${error.message}` },
       { status: 500 }

@@ -1,17 +1,47 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import './AdminPanel.css'
 
 export default function AdminPanel() {
+  const router = useRouter()
   const [orders, setOrders] = useState([])
   const [metrics, setMetrics] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [filter, setFilter] = useState('all') // 'all', 'test', 'real'
   const [statusFilter, setStatusFilter] = useState('all') // 'all', 'ordered', 'couriered', 'delivered'
-  const [apiKey, setApiKey] = useState('')
   const [updatingStatus, setUpdatingStatus] = useState(null)
+  const [user, setUser] = useState(null)
+
+  // Check authentication on mount
+  useEffect(() => {
+    checkAuth()
+  }, [])
+
+  const checkAuth = async () => {
+    try {
+      const response = await fetch('/api/auth/me')
+      if (!response.ok) {
+        router.push('/admin/login')
+        return
+      }
+      const data = await response.json()
+      setUser(data.user)
+    } catch (error) {
+      router.push('/admin/login')
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+      router.push('/admin/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
+  }
 
   const fetchOrders = useCallback(async () => {
     setLoading(true)
@@ -25,19 +55,13 @@ export default function AdminPanel() {
         params.append('testMode', 'false')
       }
       params.append('includeMetrics', 'true')
-      
-      const headers = {}
-      if (apiKey) {
-        headers['X-Admin-API-Key'] = apiKey
-      }
 
-      const response = await fetch(`/api/admin/orders?${params.toString()}`, {
-        headers
-      })
+      const response = await fetch(`/api/admin/orders?${params.toString()}`)
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error('Unauthorized. Please enter your admin API key.')
+          router.push('/admin/login')
+          return
         }
         throw new Error(`Failed to fetch orders: ${response.statusText}`)
       }
@@ -51,7 +75,7 @@ export default function AdminPanel() {
     } finally {
       setLoading(false)
     }
-  }, [filter, apiKey])
+  }, [filter, router])
 
   useEffect(() => {
     fetchOrders()
@@ -60,20 +84,19 @@ export default function AdminPanel() {
   const updateOrderStatus = async (orderId, newStatus) => {
     setUpdatingStatus(orderId)
     try {
-      const headers = {
-        'Content-Type': 'application/json'
-      }
-      if (apiKey) {
-        headers['X-Admin-API-Key'] = apiKey
-      }
-
       const response = await fetch(`/api/admin/orders/${orderId}/status`, {
         method: 'PATCH',
-        headers,
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ status: newStatus })
       })
 
       if (!response.ok) {
+        if (response.status === 401) {
+          router.push('/admin/login')
+          return
+        }
         throw new Error('Failed to update order status')
       }
 
@@ -111,20 +134,23 @@ export default function AdminPanel() {
     ? orders 
     : orders.filter(order => (order.orderStatus || 'ordered') === statusFilter)
 
+  if (!user) {
+    return <div className="loading">Loading...</div>
+  }
+
   return (
     <div className="admin-panel">
       <div className="admin-header">
-        <h1>Admin Panel - Orders</h1>
-        <div className="admin-controls">
-          <div className="api-key-input">
-            <label>Admin API Key (optional):</label>
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Enter API key if required"
-            />
+        <div className="admin-header-top">
+          <h1>Admin Panel - Orders</h1>
+          <div className="admin-user-info">
+            <span className="user-email">{user.email}</span>
+            <button onClick={handleLogout} className="logout-button">
+              Logout
+            </button>
           </div>
+        </div>
+        <div className="admin-controls">
           <div className="filter-buttons">
             <button
               className={filter === 'all' ? 'active' : ''}
@@ -281,20 +307,20 @@ export default function AdminPanel() {
                     </div>
                     <div className="detail-item">
                       <label>Customer:</label>
-                      <span>{order.customerName}</span>
+                      <span>{order.customerName || 'N/A'}</span>
                     </div>
                     <div className="detail-item">
                       <label>Email:</label>
-                      <span>{order.customerEmail}</span>
+                      <span>{order.customerEmail || 'N/A'}</span>
                     </div>
                     <div className="detail-item">
                       <label>Total:</label>
-                      <span className="total-amount">{formatCurrency(order.total)}</span>
+                      <span className="total-amount">{formatCurrency(order.total || 0)}</span>
                     </div>
                     <div className="detail-item">
                       <label>Payment Status:</label>
-                      <span className={`payment-status ${order.paymentStatus}`}>
-                        {order.paymentStatus}
+                      <span className={`payment-status ${order.paymentStatus || 'pending'}`}>
+                        {order.paymentStatus || 'pending'}
                       </span>
                     </div>
                   </div>

@@ -67,3 +67,16 @@ enum OrderStatus {
   COURIERED
   DELIVERED
 }
+
+model AdminUser {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String   // bcrypt hashed password
+  name          String?
+  isActive      Boolean  @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([email])
+}

@@ -2,20 +2,31 @@
 
 import React from 'react'
 import { useRouter } from 'next/navigation'
-import { getProductById } from '../data/products'
+import { useProductById } from '../hooks/useProductById'
 import { useCart } from '../context/CartContext'
 import './ProductDetail.css'
 
 function ProductDetail({ params }) {
   const router = useRouter()
-  const product = getProductById(params.id)
+  const { product, loading, error } = useProductById(params.id)
   const { addToCart } = useCart()
 
-  if (!product) {
+  if (loading) {
+    return (
+      <div className="product-detail-container">
+        <div className="product-loading">
+          <h2>Loading product...</h2>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !product) {
     return (
       <div className="product-detail-container">
         <div className="product-not-found">
           <h2>Product not found</h2>
+          {error && <p className="error-message">{error}</p>}
           <button onClick={() => router.push('/')} className="back-button">
             Return to Shop
           </button>

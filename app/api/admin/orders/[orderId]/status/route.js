@@ -10,9 +10,11 @@ export async function PATCH(
   { params }
 ) {
   try {
-    // Optional: Verify admin API key
-    const apiKey = request.headers.get('X-Admin-API-Key') || request.headers.get('Authorization')?.replace('Bearer ', '')
-    if (process.env.ADMIN_API_KEY && apiKey !== process.env.ADMIN_API_KEY) {
+    // Verify authentication
+    const { requireAuth } = await import('../../lib/auth')
+    try {
+      await requireAuth()
+    } catch (error) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

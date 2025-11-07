@@ -5,7 +5,8 @@ import { prisma } from './prisma'
 import { products as localProducts, getProductById as getLocalProductById } from '../data/products'
 
 // Configuration: Priority order: Database > External API > Local data
-const USE_DATABASE = process.env.USE_PRODUCTS_DATABASE !== 'true' // Default to true if DATABASE_URL exists
+// Use database if DATABASE_URL exists, unless explicitly disabled
+const USE_DATABASE = process.env.USE_PRODUCTS_DATABASE !== 'false' && !!process.env.DATABASE_URL
 const API_BASE_URL = process.env.NEXT_PUBLIC_PRODUCTS_API_URL || process.env.PRODUCTS_API_URL || ''
 const USE_API = process.env.NEXT_PUBLIC_USE_PRODUCTS_API === 'true' || process.env.USE_PRODUCTS_API === 'true'
 
@@ -14,8 +15,8 @@ const USE_API = process.env.NEXT_PUBLIC_USE_PRODUCTS_API === 'true' || process.e
  * Falls back to external API or local data if database is not available
  */
 export async function getProducts() {
-  // Try database first if configured
-  if (USE_DATABASE && process.env.DATABASE_URL) {
+  // Try database first if configured (Prisma)
+  if (USE_DATABASE) {
     try {
       const products = await prisma.product.findMany({
         orderBy: {
@@ -89,8 +90,8 @@ export async function getProducts() {
 export async function getProduct(id) {
   const productId = parseInt(id)
 
-  // Try database first if configured
-  if (USE_DATABASE && process.env.DATABASE_URL) {
+  // Try database first if configured (Prisma)
+  if (USE_DATABASE) {
     try {
       const product = await prisma.product.findUnique({
         where: {
