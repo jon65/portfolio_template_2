@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '../../lib/prisma'
-import { verifyPassword, generateToken, setAuthCookie } from '../../lib/auth'
+import { prisma } from '../../../lib/prisma'
+import { verifyPassword, generateToken, setAuthCookie } from '../../../lib/auth'
 
 /**
  * POST /api/auth/login
@@ -49,11 +49,8 @@ export async function POST(request) {
     // Generate token
     const token = generateToken(user.id, user.email)
 
-    // Set cookie
-    await setAuthCookie(token)
-
-    // Return success response
-    return NextResponse.json({
+    // Create response
+    const response = NextResponse.json({
       success: true,
       user: {
         id: user.id,
@@ -61,6 +58,17 @@ export async function POST(request) {
         name: user.name,
       },
     })
+
+    // Set cookie directly on response
+    response.cookies.set('admin-auth-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    })
+
+    return response
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(

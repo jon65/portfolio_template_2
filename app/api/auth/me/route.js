@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '../../lib/prisma'
-import { getAuthenticatedUser } from '../../lib/auth'
+import { prisma } from '../../../lib/prisma'
+import { getAuthenticatedUser } from '../../../lib/auth'
 
 /**
  * GET /api/auth/me

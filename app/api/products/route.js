@@ -19,12 +19,25 @@ export async function GET(request) {
         )
       }
       
-      return NextResponse.json(product)
+      // Include Supabase URL in response for client-side URL construction
+      const response = {
+        ...product,
+        _supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || null
+      }
+      
+      return NextResponse.json(response)
     }
 
     // Fetch all products
     const products = await getProducts()
-    return NextResponse.json(products)
+    
+    // Include Supabase URL in response for client-side URL construction
+    const response = products.map(product => ({
+      ...product,
+      _supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || null
+    }))
+    
+    return NextResponse.json(response)
   } catch (error) {
     console.error('Products API error:', error)
     return NextResponse.json(

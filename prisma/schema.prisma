@@ -54,7 +54,20 @@ model Product {
   price       String   // Formatted price string like "$185"
   priceValue  Float    // Numeric price value for calculations
   description String   @default("")
-  image       String   @default("/placeholder.jpg")
+  
+  // Supabase Storage Image Fields
+  // image: Primary image path in Supabase Storage bucket (e.g., "products/1/main.jpg")
+  //       Can be a single path, comma-separated paths, or folder path ending with "/"
+  image       String   @default("") // Path to image in Supabase Storage bucket
+  
+  // images: JSON array of image paths for multiple images
+  //         Format: ["products/1/main.jpg", "products/1/detail-1.jpg", ...]
+  //         If null, falls back to parsing the 'image' field
+  images      Json?    // Array of image paths in Supabase Storage bucket
+  
+  // imageBucket: Name of the Supabase Storage bucket (defaults to env var if not specified)
+  imageBucket    String? // Optional: Override default bucket name for this product
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   

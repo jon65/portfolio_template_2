@@ -11,25 +11,29 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [checkingAuth, setCheckingAuth] = useState(true)
 
   // Check if already authenticated
   useEffect(() => {
-    checkAuth()
-  }, [])
-
-  const checkAuth = async () => {
-    try {
-      const response = await fetch('/api/auth/me')
-      if (response.ok) {
-        setIsAuthenticated(true)
-        const redirect = searchParams.get('redirect') || '/admin'
-        router.push(redirect)
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include',
+        })
+        if (response.ok) {
+          const redirect = searchParams.get('redirect') || '/admin'
+          router.replace(redirect)
+          return
+        }
+      } catch (error) {
+        // Not authenticated, show login form
+        console.error('Auth check error:', error)
+      } finally {
+        setCheckingAuth(false)
       }
-    } catch (error) {
-      // Not authenticated, show login form
     }
-  }
+    checkAuth()
+  }, [router, searchParams])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -42,29 +46,42 @@ export default function LoginPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       })
 
-      const data = await response.json()
+      let data
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        throw new Error('Invalid response from server')
+      }
 
       if (!response.ok) {
-        setError(data.error || 'Login failed')
+        setError(data.error || 'Login failed. Please check your credentials.')
         setLoading(false)
         return
       }
 
-      // Login successful, redirect
+      // Login successful - cookie is set by server response
+      // Use window.location for a full page reload to ensure cookie is read
       const redirect = searchParams.get('redirect') || '/admin'
-      router.push(redirect)
-      router.refresh()
+      window.location.href = redirect
     } catch (err) {
-      setError('An error occurred. Please try again.')
+      console.error('Login error:', err)
+      setError(err.message || 'An error occurred. Please try again.')
       setLoading(false)
     }
   }
 
-  if (isAuthenticated) {
-    return null // Will redirect
+  if (checkingAuth) {
+    return (
+      <div className="login-container">
+        <div className="login-card">
+          <div className="loading">Checking authentication...</div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -93,6 +110,7 @@ export default function LoginPage() {
               required
               disabled={loading}
               autoComplete="email"
+              autoFocus
             />
           </div>
 

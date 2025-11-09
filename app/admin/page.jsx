@@ -14,36 +14,11 @@ export default function AdminPanel() {
   const [statusFilter, setStatusFilter] = useState('all') // 'all', 'ordered', 'couriered', 'delivered'
   const [updatingStatus, setUpdatingStatus] = useState(null)
   const [user, setUser] = useState(null)
-
-  // Check authentication on mount
-  useEffect(() => {
-    checkAuth()
-  }, [])
-
-  const checkAuth = async () => {
-    try {
-      const response = await fetch('/api/auth/me')
-      if (!response.ok) {
-        router.push('/admin/login')
-        return
-      }
-      const data = await response.json()
-      setUser(data.user)
-    } catch (error) {
-      router.push('/admin/login')
-    }
-  }
-
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' })
-      router.push('/admin/login')
-    } catch (error) {
-      console.error('Logout error:', error)
-    }
-  }
+  const [authChecked, setAuthChecked] = useState(false)
 
   const fetchOrders = useCallback(async () => {
+    if (!user) return // Don't fetch if not authenticated
+    
     setLoading(true)
     setError(null)
     
@@ -75,11 +50,43 @@ export default function AdminPanel() {
     } finally {
       setLoading(false)
     }
-  }, [filter, router])
+  }, [filter, router, user])
 
+  // Check authentication on mount
   useEffect(() => {
-    fetchOrders()
-  }, [fetchOrders])
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/me')
+        if (!response.ok) {
+          router.push('/admin/login')
+          return
+        }
+        const data = await response.json()
+        setUser(data.user)
+        setAuthChecked(true)
+      } catch (error) {
+        console.error('Auth check error:', error)
+        router.push('/admin/login')
+      }
+    }
+    checkAuth()
+  }, [router])
+
+  // Fetch orders when user is authenticated and filter changes
+  useEffect(() => {
+    if (authChecked && user) {
+      fetchOrders()
+    }
+  }, [authChecked, user, filter, fetchOrders])
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+      router.push('/admin/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
+  }
 
   const updateOrderStatus = async (orderId, newStatus) => {
     setUpdatingStatus(orderId)
@@ -134,8 +141,12 @@ export default function AdminPanel() {
     ? orders 
     : orders.filter(order => (order.orderStatus || 'ordered') === statusFilter)
 
-  if (!user) {
-    return <div className="loading">Loading...</div>
+  if (!authChecked || !user) {
+    return (
+      <div className="admin-panel">
+        <div className="loading">Loading...</div>
+      </div>
+    )
   }
 
   return (

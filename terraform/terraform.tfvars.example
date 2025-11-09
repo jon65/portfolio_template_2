@@ -1,0 +1,59 @@
+# Copy this file to terraform.tfvars and fill in your values
+# DO NOT commit terraform.tfvars to version control!
+
+# AWS Configuration
+aws_region     = "us-east-1"
+environment    = "production"
+app_name       = "portfolio-app"
+instance_type  = "t3.medium"
+volume_size    = 20
+key_pair_name  = "your-key-pair-name"
+
+# Security
+allowed_ssh_cidr_blocks = ["0.0.0.0/0"]  # Restrict to your IP in production!
+
+# Node.js Configuration
+node_version = "20"
+
+# Database Configuration
+database_url = "postgresql://user:password@host:5432/database?pgbouncer=true&connection_limit=1"
+
+# Stripe Configuration
+stripe_publishable_key = "pk_test_your_key_here"
+stripe_secret_key      = "sk_test_your_key_here"
+stripe_webhook_secret  = "whsec_your_secret_here"
+stripe_test_mode       = false
+
+# Email Configuration (Resend)
+resend_api_key    = "re_your_key_here"
+resend_from_email = "Your Brand <noreply@yourdomain.com"
+
+# Admin Configuration
+admin_email        = "admin@yourdomain.com"
+admin_panel_api_url = ""  # Optional
+admin_panel_api_key  = ""  # Optional
+internal_api_key     = ""  # Optional
+admin_api_key        = ""  # Optional
+
+# Application URL
+app_url = "https://yourdomain.com"  # Or leave empty for auto-detection
+
+# Order Storage Configuration
+order_storage_type = "internal"  # Options: internal, s3, database
+
+# S3 Configuration (if order_storage_type = "s3")
+enable_s3_access = false
+s3_bucket_name   = ""
+aws_access_key_id     = ""
+aws_secret_access_key = ""
+aws_s3_bucket         = ""
+aws_s3_region         = "us-east-1"
+
+# Database API Configuration (if order_storage_type = "database")
+database_api_url = ""
+database_api_key = ""
+
+# GitHub Configuration (optional - for automated deployments)
+github_repo_url = ""  # e.g., "https://github.com/username/repo.git"
+github_branch   = "master"
+
