@@ -3,6 +3,12 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+// Email configuration
+const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'shop.jonnoyip.com'
+const BRAND_NAME = process.env.BRAND_NAME || 'Shop'
+const DEFAULT_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || `Shop <noreply@${EMAIL_DOMAIN}>`
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || `support@${EMAIL_DOMAIN}`
+
 /**
  * Generate HTML email template for order invoice
  */
@@ -15,7 +21,7 @@ function generateInvoiceEmail(orderData) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Order Confirmation - Your Brand</title>
+  <title>Order Confirmation - ${BRAND_NAME}</title>
   <style>
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -166,7 +172,7 @@ function generateInvoiceEmail(orderData) {
 <body>
   <div class="email-container">
     <div class="email-header">
-      <h1>Your Brand</h1>
+      <h1>${BRAND_NAME}</h1>
     </div>
     
     <div class="email-body">
@@ -232,8 +238,8 @@ function generateInvoiceEmail(orderData) {
     </div>
 
     <div class="email-footer">
-      <p>© 2025 Your Brand. All Rights Reserved.</p>
-      <p>If you have any questions, please contact us at support@yourbrand.com</p>
+      <p>© ${new Date().getFullYear()} ${BRAND_NAME}. All Rights Reserved.</p>
+      <p>If you have any questions, please contact us at ${SUPPORT_EMAIL}</p>
     </div>
   </div>
 </body>
@@ -295,7 +301,7 @@ export async function sendInvoiceEmail(paymentIntent) {
 
     // Send email using Resend
     const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'Your Brand <onboarding@resend.dev>',
+      from: DEFAULT_FROM_EMAIL,
       to: customerEmail,
       subject: `Order Confirmation #${paymentIntent.id.slice(-8)}`,
       html: generateInvoiceEmail(emailData),
@@ -326,7 +332,7 @@ function generateAdminNotificationEmail(orderData) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>New Order Notification - Your Brand</title>
+  <title>New Order Notification - ${BRAND_NAME}</title>
   <style>
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -490,7 +496,7 @@ function generateAdminNotificationEmail(orderData) {
 <body>
   <div class="email-container">
     <div class="email-header">
-      <h1>Your Brand</h1>
+      <h1>${BRAND_NAME}</h1>
     </div>
     ${isTestMode ? '<div class="test-mode-banner">⚠️ TEST MODE - This is a test order</div>' : ''}
     
@@ -567,7 +573,7 @@ function generateAdminNotificationEmail(orderData) {
     </div>
 
     <div class="email-footer">
-      <p>© 2025 Your Brand. All Rights Reserved.</p>
+      <p>© ${new Date().getFullYear()} ${BRAND_NAME}. All Rights Reserved.</p>
       <p>This is an automated notification. Please process this order in your admin panel.</p>
     </div>
   </div>
@@ -636,7 +642,7 @@ export async function sendAdminNotification(paymentIntent, isTestMode = false) {
 
     // Send email using Resend
     const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'Your Brand <onboarding@resend.dev>',
+      from: DEFAULT_FROM_EMAIL,
       to: adminEmail,
       subject: `${isTestMode ? '[TEST MODE] ' : ''}New Order #${paymentIntent.id.slice(-8)} - $${total.toFixed(2)}`,
       html: generateAdminNotificationEmail(emailData),

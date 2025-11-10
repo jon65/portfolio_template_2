@@ -35,22 +35,39 @@ Add to your `.env.local` file:
 ```env
 # Resend Email Service
 RESEND_API_KEY=re_your_api_key_here
-RESEND_FROM_EMAIL=Your Brand <noreply@yourdomain.com>
+
+# Email Domain (defaults to shop.jonnoyip.com)
+EMAIL_DOMAIN=shop.jonnoyip.com
+
+# Brand Name (defaults to "Shop")
+BRAND_NAME=Shop
+
+# From Email Address
+# If not set, defaults to: "Shop <noreply@shop.jonnoyip.com>"
+RESEND_FROM_EMAIL=Shop <noreply@shop.jonnoyip.com>
+
+# Support Email (defaults to support@shop.jonnoyip.com)
+SUPPORT_EMAIL=support@shop.jonnoyip.com
+
+# Admin Email (for receiving order notifications)
+ADMIN_EMAIL=admin@shop.jonnoyip.com
 ```
 
 **Note:** For development, you can use Resend's test domain:
 ```env
-RESEND_FROM_EMAIL=Your Brand <onboarding@resend.dev>
+RESEND_FROM_EMAIL=Shop <onboarding@resend.dev>
 ```
 
 ### 4. Verify Domain (Production Only)
 
-For production:
+For production with `shop.jonnoyip.com`:
 1. Go to Resend Dashboard > Domains
-2. Add your domain
-3. Add the DNS records they provide
-4. Wait for verification
-5. Update `RESEND_FROM_EMAIL` to use your domain
+2. Add your domain: `shop.jonnoyip.com`
+3. Add the DNS records they provide to your domain's DNS settings
+4. Wait for verification (usually takes a few minutes to a few hours)
+5. Once verified, emails will be sent from `noreply@shop.jonnoyip.com` and `support@shop.jonnoyip.com`
+
+**Important:** Make sure to verify the domain in Resend before using it in production, otherwise emails may fail to send.
 
 ## How It Works
 
@@ -83,9 +100,12 @@ Edit `app/lib/email.js` → `generateInvoiceEmail()` function to customize:
 
 ### Update Brand Name
 
-Replace "Your Brand" in:
-- `app/lib/email.js` (email template)
-- `RESEND_FROM_EMAIL` environment variable
+You can customize the brand name by setting the `BRAND_NAME` environment variable:
+```env
+BRAND_NAME=Your Brand Name
+```
+
+Or update it directly in `app/lib/email.js` if you prefer.
 
 ### Change Email Subject
 

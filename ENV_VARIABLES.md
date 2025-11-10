@@ -38,18 +38,31 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 # Resend API Key
 RESEND_API_KEY=re_your_resend_api_key_here
 
+# Email Domain (defaults to shop.jonnoyip.com)
+# This domain will be used for email addresses if RESEND_FROM_EMAIL is not set
+EMAIL_DOMAIN=shop.jonnoyip.com
+
+# Brand Name (defaults to "Shop")
+# Used in email templates and headers
+BRAND_NAME=Shop
+
 # From Email Address
 # Format: "Display Name <email@domain.com>"
-# For development, use: "Your Brand <onboarding@resend.dev>"
-# For production, use your verified domain
-RESEND_FROM_EMAIL=Your Brand <noreply@yourdomain.com>
+# If not set, defaults to: "Shop <noreply@shop.jonnoyip.com>"
+# For development, use: "Shop <onboarding@resend.dev>"
+# For production, use your verified domain: "Shop <noreply@shop.jonnoyip.com>"
+RESEND_FROM_EMAIL=Shop <noreply@shop.jonnoyip.com>
+
+# Support Email (defaults to support@shop.jonnoyip.com)
+# Used in email footers for customer support contact
+SUPPORT_EMAIL=support@shop.jonnoyip.com
 
 # ============================================
 # Admin Notification
 # ============================================
 # Email address to receive order notifications
 # Admin will receive an email notification when a payment succeeds
-ADMIN_EMAIL=admin@yourdomain.com
+ADMIN_EMAIL=admin@shop.jonnoyip.com
 
 # ============================================
 # Admin Panel Configuration
