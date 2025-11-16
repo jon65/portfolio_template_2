@@ -38,6 +38,7 @@ function ProductDetail({ params }) {
     const supabaseUrl = supabaseUrlFromProduct || process.env.NEXT_PUBLIC_SUPABASE_URL
     
     if (!supabaseUrl) {
+      console.error('[ProductDetail] constructSupabaseUrl: Supabase URL not available. Cannot construct URL for path:', path)
       return null
     }
     
@@ -72,8 +73,14 @@ function ProductDetail({ params }) {
       image: product.image,
       imageBucket: product.imageBucket,
       _supabaseUrl: product._supabaseUrl,
-      envSupabaseUrl: typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_URL : 'N/A (server)'
+      envSupabaseUrl: typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_URL : 'N/A (server)',
+      resolvedSupabaseUrl: supabaseUrl
     })
+    
+    // Warn if Supabase URL is not available and we need to construct URLs
+    if (!supabaseUrl && (product.images || (product.image && product.image !== '/placeholder.jpg' && !product.image.startsWith('/') && !product.image.startsWith('http')))) {
+      console.warn('[ProductDetail] Supabase URL not available, but product has Supabase storage paths. Image URLs may not be constructed correctly.')
+    }
     
     // Priority: imageUrls array (server-enriched) > imageUrl (server-enriched) > images array > image field
     if (product.imageUrls && Array.isArray(product.imageUrls) && product.imageUrls.length > 0) {
@@ -88,21 +95,41 @@ function ProductDetail({ params }) {
     } else if (product.images && Array.isArray(product.images) && product.images.length > 0) {
       // Has images array but not enriched - construct URLs
       const firstImage = product.images[0]
-      primaryUrl = constructSupabaseUrl(firstImage, bucket, supabaseUrl) || firstImage
+      primaryUrl = constructSupabaseUrl(firstImage, bucket, supabaseUrl)
+      
+      // Only use raw path as fallback if it's a local path (starts with /)
+      if (!primaryUrl && firstImage && firstImage.startsWith('/')) {
+        primaryUrl = firstImage
+      }
       
       if (product.images.length > 1) {
         const secondImage = product.images[1]
-        secondaryUrl = constructSupabaseUrl(secondImage, bucket, supabaseUrl) || secondImage
+        secondaryUrl = constructSupabaseUrl(secondImage, bucket, supabaseUrl)
+        
+        // Only use raw path as fallback if it's a local path (starts with /)
+        if (!secondaryUrl && secondImage && secondImage.startsWith('/')) {
+          secondaryUrl = secondImage
+        }
       }
     } else if (product.image && product.image !== '/placeholder.jpg') {
       // Fallback: construct public URL from path
-      primaryUrl = constructSupabaseUrl(product.image, bucket, supabaseUrl) || product.image
+      primaryUrl = constructSupabaseUrl(product.image, bucket, supabaseUrl)
+      
+      // Only use raw path as fallback if it's a local path (starts with /)
+      if (!primaryUrl && product.image && product.image.startsWith('/')) {
+        primaryUrl = product.image
+      }
       
       // Check if image field has comma-separated paths for secondary image
       if (product.image.includes(',')) {
         const paths = product.image.split(',').map(p => p.trim()).filter(Boolean)
         if (paths.length > 1) {
-          secondaryUrl = constructSupabaseUrl(paths[1], bucket, supabaseUrl) || paths[1]
+          secondaryUrl = constructSupabaseUrl(paths[1], bucket, supabaseUrl)
+          
+          // Only use raw path as fallback if it's a local path (starts with /)
+          if (!secondaryUrl && paths[1] && paths[1].startsWith('/')) {
+            secondaryUrl = paths[1]
+          }
         }
       }
     }
@@ -154,12 +181,34 @@ function ProductDetail({ params }) {
     console.error(`[ProductDetail] ${imageType} image failed to load:`, {
       src: e.target.src,
       productId: product.id,
-      productName: product.name
+      productName: product.name,
+      naturalWidth: e.target.naturalWidth,
+      naturalHeight: e.target.naturalHeight,
+      complete: e.target.complete,
+      error: e.target.error
+    })
+    // Try to show what went wrong
+    if (e.target.error) {
+      console.error(`[ProductDetail] Image error details:`, e.target.error)
+    }
+  }
+
+  const handleImageLoad = (imageType, url) => {
+    console.log(`[ProductDetail] ${imageType} image loaded successfully:`, {
+      url,
+      timestamp: new Date().toISOString()
     })
   }
 
   // Ensure we have a valid URL (not null, undefined, or empty string)
   const hasValidPrimaryUrl = primaryUrl && primaryUrl.trim() !== ''
+
+  console.log('[ProductDetail] Render state:', {
+    hasValidPrimaryUrl,
+    primaryUrl,
+    secondaryUrl,
+    productId: product.id
+  })
 
   return (
     <div className="product-detail-container">
@@ -173,26 +222,42 @@ function ProductDetail({ params }) {
             {hasValidPrimaryUrl ? (
               <>
                 <img 
+                  key={`primary-${primaryUrl}`}
                   src={primaryUrl} 
                   alt={product.name}
                   className="product-detail-image-primary"
-                  loading="lazy"
+                  loading="eager"
                   onError={(e) => handleImageError(e, 'Primary')}
-                  onLoad={() => console.log('[ProductDetail] Primary image loaded successfully:', primaryUrl)}
+                  onLoad={(e) => {
+                    handleImageLoad('Primary', primaryUrl)
+                    console.log('[ProductDetail] Image element details:', {
+                      naturalWidth: e.target.naturalWidth,
+                      naturalHeight: e.target.naturalHeight,
+                      width: e.target.width,
+                      height: e.target.height,
+                      complete: e.target.complete,
+                      computedStyle: window.getComputedStyle(e.target)
+                    })
+                  }}
                 />
                 {secondaryUrl && secondaryUrl.trim() !== '' && (
                   <img 
+                    key={`secondary-${secondaryUrl}`}
                     src={secondaryUrl} 
                     alt={`${product.name} - view 2`}
                     className="product-detail-image-secondary"
                     loading="lazy"
                     onError={(e) => handleImageError(e, 'Secondary')}
-                    onLoad={() => console.log('[ProductDetail] Secondary image loaded successfully:', secondaryUrl)}
+                    onLoad={() => handleImageLoad('Secondary', secondaryUrl)}
                   />
                 )}
               </>
             ) : (
-              <div className="placeholder-img-large"></div>
+              <div className="placeholder-img-large">
+                <p style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+                  No image available
+                </p>
+              </div>
             )}
           </div>
         </div>

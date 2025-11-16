@@ -1,0 +1,102 @@
+name: Backend Unit Tests
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - prod
+    paths:
+      - 'app/api/**'
+      - 'app/lib/**'
+      - '**/*.test.js'
+      - '**/*.test.ts'
+      - '**/*.spec.js'
+      - '**/*.spec.ts'
+      - 'jest.config.js'
+      - 'package.json'
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+      - prod
+    paths:
+      - 'app/api/**'
+      - 'app/lib/**'
+      - '**/*.test.js'
+      - '**/*.test.ts'
+      - '**/*.spec.js'
+      - '**/*.spec.ts'
+      - 'jest.config.js'
+      - 'package.json'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  test:
+    name: Run Backend Unit Tests
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    env:
+      NODE_ENV: test
+      JWT_SECRET: test-secret-key-for-ci
+      DATABASE_URL: postgresql://test:test@localhost:5432/test?schema=public
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Generate Prisma Client
+        run: npm run db:generate
+        continue-on-error: true
+      
+      - name: Run linter
+        run: npm run lint
+        continue-on-error: true
+      
+      - name: Run backend unit tests
+        run: npm run test:backend
+      
+      - name: Generate test coverage
+        run: npm run test:backend -- --coverage
+        continue-on-error: true
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+        continue-on-error: true
+      
+      - name: Test summary
+        if: always()
+        run: |
+          echo "=== Test Summary ==="
+          echo "Node Version: ${{ matrix.node-version }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Author: ${{ github.actor }}"
+          echo "Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "Status: ✅ All tests passed"
+          else
+            echo "Status: ❌ Tests failed"
+          fi
+

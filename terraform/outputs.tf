@@ -25,7 +25,12 @@ output "security_group_id" {
 
 output "app_url" {
   description = "Application URL"
-  value       = "http://${aws_instance.app.public_dns}:3000"
+  value       = var.domain_name != "" ? "https://${var.domain_name}" : "http://${aws_instance.app.public_dns}:3000"
+}
+
+output "domain_name" {
+  description = "Domain name configured for the application"
+  value       = var.domain_name != "" ? var.domain_name : "Not configured"
 }
 
 output "ssh_command" {

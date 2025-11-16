@@ -208,3 +208,62 @@ variable "github_branch" {
   default     = "master"
 }
 
+variable "github_ssh_private_key" {
+  description = "SSH private key for accessing private GitHub repository (base64 encoded or plain text)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "github_actions_ssh_public_key" {
+  description = "SSH public key for GitHub Actions to access EC2 instance (for CI/CD deployments)"
+  type        = string
+  sensitive   = false
+  default     = ""
+}
+
+variable "domain_name" {
+  description = "Domain name for the application (e.g., shop.jonnoyip.com)"
+  type        = string
+  default     = ""
+}
+
+variable "supabase_url" {
+  description = "Supabase project URL"
+  type        = string
+  sensitive   = false
+  default     = ""
+}
+
+variable "supabase_publishable_key" {
+  description = "Supabase publishable/anonymous key"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "supabase_service_role_key" {
+  description = "Supabase service role key (for server-side operations)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "supabase_product_images_bucket" {
+  description = "Supabase storage bucket name for product images"
+  type        = string
+  default     = "product-images"
+}
+
+variable "use_supabase_images" {
+  description = "Enable Supabase image URL enrichment (true/false)"
+  type        = string
+  default     = "false"
+}
+
+variable "supabase_use_public_images" {
+  description = "Use public image URLs instead of signed URLs (true/false)"
+  type        = string
+  default     = "false"
+}
+

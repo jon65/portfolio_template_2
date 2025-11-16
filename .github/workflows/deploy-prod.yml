@@ -1,0 +1,88 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - prod
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  EC2_HOST: ${{ secrets.EC2_HOST }}
+  EC2_USER: ec2-user
+  APP_NAME: portfolio-app
+  APP_DIR: /home/ec2-user/portfolio-app
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: prod
+      
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+      
+      - name: Test SSH connection
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} "echo 'SSH connection successful'"
+      
+      - name: Copy deployment script to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no scripts/deploy.sh ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:/tmp/deploy.sh
+          ssh -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} "chmod +x /tmp/deploy.sh"
+      
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} << ENDSSH
+            set -e
+            cd ${{ env.APP_DIR }}
+            
+            # Pull latest code
+            echo "=== Pulling latest code ==="
+            git fetch origin prod
+            git reset --hard origin/prod
+            git clean -fd
+            
+            # Run deployment script
+            export APP_NAME=${{ env.APP_NAME }}
+            bash /tmp/deploy.sh
+          ENDSSH
+      
+      - name: Health check
+        run: |
+          echo "=== Running health check ==="
+          sleep 10
+          
+          # Check if application is responding
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.EC2_HOST }}:3000 || echo "000")
+          
+          if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "301" ] || [ "$HTTP_CODE" = "302" ]; then
+            echo "✅ Health check passed (HTTP $HTTP_CODE)"
+          else
+            echo "⚠️ Health check warning (HTTP $HTTP_CODE)"
+            echo "Application may still be starting up..."
+          fi
+      
+      - name: Deployment summary
+        if: always()
+        run: |
+          echo "=== Deployment Summary ==="
+          echo "Branch: prod"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
+          echo "Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "Status: ✅ Success"
+          else
+            echo "Status: ❌ Failed"
+          fi
+

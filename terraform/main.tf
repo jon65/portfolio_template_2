@@ -215,6 +215,15 @@ resource "aws_instance" "app" {
     stripe_test_mode      = var.stripe_test_mode
     github_repo_url       = var.github_repo_url
     github_branch         = var.github_branch
+    github_ssh_private_key = var.github_ssh_private_key
+    github_actions_ssh_public_key = var.github_actions_ssh_public_key
+    domain_name           = var.domain_name
+    supabase_url          = var.supabase_url
+    supabase_publishable_key = var.supabase_publishable_key
+    supabase_service_role_key = var.supabase_service_role_key
+    supabase_product_images_bucket = var.supabase_product_images_bucket
+    use_supabase_images   = var.use_supabase_images
+    supabase_use_public_images = var.supabase_use_public_images
   }))
 
   tags = {

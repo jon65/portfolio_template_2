@@ -38,6 +38,9 @@ admin_api_key        = ""  # Optional
 # Application URL
 app_url = "https://yourdomain.com"  # Or leave empty for auto-detection
 
+# Domain Configuration
+domain_name = "shop.jonnoyip.com"  # Your domain name for SSL certificate
+
 # Order Storage Configuration
 order_storage_type = "internal"  # Options: internal, s3, database
 
@@ -54,6 +57,35 @@ database_api_url = ""
 database_api_key = ""
 
 # GitHub Configuration (optional - for automated deployments)
-github_repo_url = ""  # e.g., "https://github.com/username/repo.git"
+github_repo_url = ""  # e.g., "https://github.com/username/repo.git" or "git@github.com:username/repo.git"
 github_branch   = "master"
+
+# SSH Private Key for Private GitHub Repository
+# Required if github_repo_url points to a private repository
+# Paste your SSH private key here (the entire key including -----BEGIN and -----END lines)
+# Example:
+# github_ssh_private_key = <<-EOT
+#   -----BEGIN OPENSSH PRIVATE KEY-----
+#   b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
+#   ...
+#   -----END OPENSSH PRIVATE KEY-----
+# EOT
+github_ssh_private_key = ""
+
+# SSH Public Key for GitHub Actions CI/CD
+# Required for automated deployments via GitHub Actions
+# This is the PUBLIC key (not private) that GitHub Actions will use to SSH into EC2
+# Generate with: ssh-keygen -t ed25519 -C "github-actions@deploy" -f ~/.ssh/github-actions-deploy
+# Then use the .pub file content here
+# Example:
+# github_actions_ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... github-actions@deploy"
+github_actions_ssh_public_key = ""
+
+# Supabase Configuration
+supabase_url                  = "https://your-project.supabase.co"
+supabase_publishable_key      = "your_supabase_publishable_key"
+supabase_service_role_key     = "your_supabase_service_role_key"  # Optional, for server-side operations
+supabase_product_images_bucket = "product-images"  # Default bucket name
+use_supabase_images           = "true"  # Enable image URL enrichment
+supabase_use_public_images    = "false"  # Use public URLs (no signing needed)
 

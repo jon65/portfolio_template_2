@@ -38,3 +38,8 @@ lerna-debug.log*
 vite.config.js
 
 /src/generated/prisma
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
