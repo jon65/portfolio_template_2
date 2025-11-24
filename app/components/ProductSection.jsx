@@ -293,6 +293,8 @@ export default function ProductSection() {
                 <div className="product-image">
                   {(() => {
                     const { primaryUrl, secondaryUrl } = getProductImageUrls(product)
+                    console.log('primaryUrl', primaryUrl);
+                    console.log('secondaryUrl', secondaryUrl);  
                     const hasError = imageErrors[product.id]
                     
                     if (!primaryUrl) {

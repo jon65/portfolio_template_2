@@ -1,0 +1,107 @@
+# Copy this file to terraform.tfvars and fill in your values
+# DO NOT commit terraform.tfvars to version control!
+
+# ============================================================================
+# CLOUDFLARE CONFIGURATION
+# ============================================================================
+
+# Cloudflare API Token
+# Get this from: https://dash.cloudflare.com/profile/api-tokens
+# Required permissions: Zone:Edit, Zone:Read, DNS:Edit
+cloudflare_api_token = "your_cloudflare_api_token_here"
+
+# Cloudflare Zone (your domain)
+cloudflare_zone_name = "yippies.net"
+
+# Domain name to create DNS record for
+# Use "yippies.net" for root domain, or "shop.yippies.net" for subdomain
+domain_name = "yippies.net"
+
+# DNS TTL (Time To Live) in seconds
+# When proxied (orange cloud), this is automatically set to "automatic"
+# For non-proxied records, use: 300 (5 min), 3600 (1 hour), etc.
+dns_ttl = 1  # 1 = automatic (recommended when proxied)
+
+# Enable Cloudflare proxy (orange cloud)
+# true = Traffic goes through Cloudflare (DDoS protection, CDN, caching)
+# false = Direct connection to EC2 (grey cloud)
+cloudflare_proxy_enabled = true
+
+# Create www subdomain record
+create_www_record = true
+
+# Redirect www to root domain (using Cloudflare Page Rules)
+redirect_www_to_root = false
+
+# ============================================================================
+# EC2 INSTANCE CONFIGURATION
+# ============================================================================
+
+# AWS region where your EC2 instance is located
+aws_region = "us-east-1"
+
+# Option 1: Provide EC2 instance ID (Terraform will automatically get the Elastic IP)
+ec2_instance_id = "i-0123456789abcdef0"
+
+# Option 2: Provide Elastic IP allocation ID (preferred if you know it)
+# ec2_eip_allocation_id = "eipalloc-0123456789abcdef0"
+
+# Option 3: Provide Elastic IP public address directly
+# ec2_public_ip = "54.123.45.67"
+
+# Option 4: Manual override (if data sources can't find the IP)
+# ec2_public_ip_override = "54.123.45.67"
+
+# ============================================================================
+# SSL/TLS CONFIGURATION
+# ============================================================================
+
+# Cloudflare SSL mode
+# "flexible" = SSL between visitor and Cloudflare only (EC2 can use HTTP)
+#             Use this if your EC2 instance doesn't have SSL certificate
+# "full" = SSL end-to-end, but Cloudflare won't verify origin certificate
+# "full_strict" = SSL end-to-end with valid origin certificate (recommended)
+ssl_mode = "flexible"
+
+# Minimum TLS version
+min_tls_version = "1.2"  # Options: "1.0", "1.1", "1.2", "1.3"
+
+# Always redirect HTTP to HTTPS
+always_use_https = true
+
+# Automatically rewrite HTTP links to HTTPS
+automatic_https_rewrites = true
+
+# ============================================================================
+# SPEED OPTIMIZATIONS
+# ============================================================================
+
+enable_speed_optimizations = true
+enable_http3 = true  # Enable HTTP/3 (QUIC)
+enable_zero_rtt = false  # 0-RTT Connection Resumption (may have security implications)
+
+# ============================================================================
+# SECURITY SETTINGS
+# ============================================================================
+
+enable_security_settings = true
+security_level = "medium"  # Options: "essentially_off", "low", "medium", "high", "under_attack"
+challenge_passage = 1800  # How long to skip challenges after passing (30 minutes)
+browser_check = true
+privacy_pass = true
+
+# ============================================================================
+# CACHE SETTINGS
+# ============================================================================
+
+enable_cache_settings = true
+browser_cache_ttl = 14400  # 4 hours
+cache_level = "basic"  # Options: "aggressive", "basic", "simplified"
+development_mode = false  # Set to true to bypass cache (testing only)
+
+# ============================================================================
+# GENERAL
+# ============================================================================
+
+environment = "production"
+

@@ -57,6 +57,13 @@ data "aws_subnets" "default" {
   }
 }
 
+# Data source to find Route53 hosted zone for the domain
+# This assumes the hosted zone for jonnoyip.com already exists
+data "aws_route53_zone" "main" {
+  count = var.domain_name != "" ? 1 : 0
+  name  = var.route53_zone_name != "" ? var.route53_zone_name : join(".", slice(split(".", var.domain_name), length(split(".", var.domain_name)) - 2, length(split(".", var.domain_name))))
+}
+
 # Security Group for EC2 Instance
 resource "aws_security_group" "app_sg" {
   name        = "${var.app_name}-sg"
@@ -231,13 +238,23 @@ resource "aws_instance" "app" {
   }
 }
 
-# Elastic IP (optional - uncomment if you want a static IP)
-# resource "aws_eip" "app_eip" {
-#   instance = aws_instance.app.id
-#   domain   = "vpc"
-#   
-#   tags = {
-#     Name = "${var.app_name}-eip"
-#   }
-# }
+# Elastic IP for static IP address (required for Route53 DNS)
+resource "aws_eip" "app_eip" {
+  instance = aws_instance.app.id
+  domain   = "vpc"
+  
+  tags = {
+    Name = "${var.app_name}-eip"
+  }
+}
+
+# Route53 A record pointing shop.jonnoyip.com to the EC2 instance
+resource "aws_route53_record" "app" {
+  count   = var.domain_name != "" && length(data.aws_route53_zone.main) > 0 ? 1 : 0
+  zone_id = data.aws_route53_zone.main[0].zone_id
+  name    = var.domain_name
+  type    = "A"
+  ttl     = 300
+  records = [aws_eip.app_eip.public_ip]
+}
 

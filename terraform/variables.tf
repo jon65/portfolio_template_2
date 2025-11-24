@@ -228,6 +228,12 @@ variable "domain_name" {
   default     = ""
 }
 
+variable "route53_zone_name" {
+  description = "Route53 hosted zone name (e.g., jonnoyip.com). If not provided, will be auto-detected from domain_name"
+  type        = string
+  default     = ""
+}
+
 variable "supabase_url" {
   description = "Supabase project URL"
   type        = string

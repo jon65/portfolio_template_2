@@ -1,5 +1,5 @@
 import { getProduct } from '../../lib/products'
-import ProductDetailClient from '../../components/ProductDetailClient'
+import ProductDetail from '../../components/ProductDetail'
 import { notFound } from 'next/navigation'
 
 export default async function ProductPage({ params }) {
@@ -11,6 +11,6 @@ export default async function ProductPage({ params }) {
     notFound()
   }
 
-  return <ProductDetailClient product={product} />
+  return <ProductDetail product={product} />
 }
 

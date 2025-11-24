@@ -57,14 +57,17 @@ terraform apply
 Type `yes` when prompted. This will create:
 - Security groups
 - IAM role and instance profile
-- EC2 instance
+- EC2 instance with Elastic IP
+- Route53 DNS record (if domain_name is configured)
 - All necessary networking
 
 ### 5. Access Your Application
 
 After deployment completes, Terraform will output:
 - Instance public IP
-- Application URL (typically `http://<public-ip>:3000`)
+- Elastic IP address
+- Application URL (typically `https://shop.jonnoyip.com` if domain is configured)
+- Route53 DNS record information
 - SSH command to connect to the instance
 
 You can also get these values anytime with:
@@ -174,22 +177,50 @@ npx prisma migrate deploy
 
 ## Advanced Configuration
 
-### Add Elastic IP
+### Route53 DNS Configuration
 
-Uncomment the Elastic IP resource in `main.tf`:
-```hcl
-resource "aws_eip" "app_eip" {
-  instance = aws_instance.app.id
-  domain   = "vpc"
-}
-```
+The Terraform configuration automatically sets up Route53 DNS for your domain:
 
-### Set Up HTTPS with Load Balancer
+1. **Prerequisites**: 
+   - You must have a Route53 hosted zone for your root domain (e.g., `jonnoyip.com`)
+   - The hosted zone should already exist in your AWS account
 
-For production, you'll want to add:
+2. **Configuration**:
+   - Set `domain_name = "shop.jonnoyip.com"` in `terraform.tfvars`
+   - Optionally set `route53_zone_name = "jonnoyip.com"` if auto-detection doesn't work
+
+3. **What gets created**:
+   - Elastic IP for static IP address
+   - Route53 A record pointing `shop.jonnoyip.com` to the EC2 instance
+   - SSL certificate via Let's Encrypt (configured in user-data script)
+
+4. **DNS Propagation**:
+   - DNS changes typically propagate within a few minutes
+   - You can verify with: `dig shop.jonnoyip.com` or `nslookup shop.jonnoyip.com`
+
+### Elastic IP
+
+An Elastic IP is automatically created and assigned to the EC2 instance when `domain_name` is configured. This provides a static IP address for your Route53 DNS record.
+
+### HTTPS/SSL Configuration
+
+The user-data script automatically configures HTTPS using:
+- **Nginx** as a reverse proxy
+- **Let's Encrypt** for SSL certificates (via Certbot)
+- Automatic certificate renewal
+
+SSL is automatically configured when:
+- `domain_name` is set in `terraform.tfvars`
+- `admin_email` is provided (required for Let's Encrypt)
+
+The certificate will be automatically renewed by Certbot.
+
+### Set Up HTTPS with Load Balancer (Advanced)
+
+For high-availability production setups, you may want to add:
 1. Application Load Balancer (ALB)
-2. SSL Certificate from AWS Certificate Manager
-3. Route53 for DNS
+2. SSL Certificate from AWS Certificate Manager (instead of Let's Encrypt)
+3. Multiple EC2 instances across availability zones
 
 This is beyond the scope of this basic setup but can be added to the Terraform configuration.
 

@@ -39,7 +39,8 @@ admin_api_key        = ""  # Optional
 app_url = "https://yourdomain.com"  # Or leave empty for auto-detection
 
 # Domain Configuration
-domain_name = "shop.jonnoyip.com"  # Your domain name for SSL certificate
+domain_name = "shop.jonnoyip.com"  # Your domain name for SSL certificate and Route53 DNS
+route53_zone_name = "jonnoyip.com"  # Optional: Route53 hosted zone name (auto-detected from domain_name if not provided)
 
 # Order Storage Configuration
 order_storage_type = "internal"  # Options: internal, s3, database

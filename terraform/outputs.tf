@@ -33,14 +33,24 @@ output "domain_name" {
   value       = var.domain_name != "" ? var.domain_name : "Not configured"
 }
 
+output "elastic_ip" {
+  description = "Elastic IP address assigned to the EC2 instance"
+  value       = aws_eip.app_eip.public_ip
+}
+
+output "route53_record" {
+  description = "Route53 DNS record information"
+  value = var.domain_name != "" && length(data.aws_route53_zone.main) > 0 ? {
+    zone_id = data.aws_route53_zone.main[0].zone_id
+    name    = aws_route53_record.app[0].name
+    type    = aws_route53_record.app[0].type
+    records = aws_route53_record.app[0].records
+  } : "Route53 not configured"
+}
+
 output "ssh_command" {
   description = "SSH command to connect to the instance"
   value       = "ssh -i ~/.ssh/${var.key_pair_name}.pem ec2-user@${aws_instance.app.public_ip}"
 }
 
-# Uncomment if using Elastic IP
-# output "elastic_ip" {
-#   description = "Elastic IP address"
-#   value       = aws_eip.app_eip.public_ip
-# }
 
