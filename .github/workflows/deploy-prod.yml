@@ -43,8 +43,9 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} << ENDSSH
             set -e
+            git config --global --add safe.directory ${{ env.APP_DIR }}
             cd ${{ env.APP_DIR }}
-            
+
             # Pull latest code
             echo "=== Pulling latest code ==="
             git fetch origin prod
