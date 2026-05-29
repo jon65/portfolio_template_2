@@ -20,13 +20,12 @@ cd "$APP_DIR" || {
   exit 1
 }
 
-# Pull latest code (if in a git repository)
-if [ -d ".git" ]; then
+# Pull latest code - skip if CI/CD already handled it (SKIP_GIT_PULL=1)
+if [ -d ".git" ] && [ "${SKIP_GIT_PULL}" != "1" ]; then
   echo "=== Pulling latest code ==="
   CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "master")
   echo "Current branch: $CURRENT_BRANCH"
-  
-  # Fetch and reset to latest
+
   git fetch origin "$CURRENT_BRANCH" || git fetch origin
   git reset --hard "origin/$CURRENT_BRANCH" || git reset --hard HEAD
   git clean -fd

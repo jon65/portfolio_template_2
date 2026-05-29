@@ -53,8 +53,9 @@ jobs:
             git reset --hard origin/prod
             git clean -fd
             
-            # Run deployment script
+            # Run deployment script (git pull already done above)
             export APP_NAME=${{ env.APP_NAME }}
+            export SKIP_GIT_PULL=1
             bash /tmp/deploy.sh
           ENDSSH
       
