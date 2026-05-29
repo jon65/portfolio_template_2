@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // Next.js API Route - Products API
 // Fetches products from Supabase via Prisma, with fallbacks to external API or local data
 import { NextResponse } from 'next/server'

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextResponse } from 'next/server'
 import { storeOrderInMemory, getOrdersFromMemory, getOrderMetrics } from '../../../lib/order-storage'
 import { 

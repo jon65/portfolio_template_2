@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // API Route to fetch product images from Supabase Storage
 import { NextResponse } from 'next/server'
 import { getSignedUrl, getPublicUrl, listFiles } from '../../../lib/supabase'
