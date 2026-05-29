@@ -1,7 +1,9 @@
 // Email utility functions for sending invoices
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 // Email configuration
 const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'shop.jonnoyip.com'
@@ -300,7 +302,7 @@ export async function sendInvoiceEmail(paymentIntent) {
     }
 
     // Send email using Resend
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: DEFAULT_FROM_EMAIL,
       to: customerEmail,
       subject: `Order Confirmation #${paymentIntent.id.slice(-8)}`,
@@ -641,7 +643,7 @@ export async function sendAdminNotification(paymentIntent, isTestMode = false) {
     }
 
     // Send email using Resend
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: DEFAULT_FROM_EMAIL,
       to: adminEmail,
       subject: `${isTestMode ? '[TEST MODE] ' : ''}New Order #${paymentIntent.id.slice(-8)} - $${total.toFixed(2)}`,
