@@ -73,19 +73,21 @@ elif [[ "$GITHUB_SSH_URL" == https://*.github.com/* ]]; then
 fi
 
 # Clone repository using SSH as ec2-user
-echo "Cloning repository from ${GITHUB_SSH_URL}..."
+echo "Cloning repository from $${GITHUB_SSH_URL}..."
 sudo -u ec2-user bash <<EC2USER_CLONE
 export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/home/ec2-user/.ssh/known_hosts -i /home/ec2-user/.ssh/id_rsa"
 cd $APP_DIR
 git clone -b ${github_branch} "$GITHUB_SSH_URL" .
 EC2USER_CLONE
 
-%{ elif github_repo_url != "" ~}
+%{ else ~}
+%{ if github_repo_url != "" ~}
 # Clone public repository (no SSH key needed)
 git clone -b ${github_branch} ${github_repo_url} .
 %{ else ~}
 # Repository will be uploaded manually or via CI/CD
 echo "Waiting for application code to be uploaded..."
+%{ endif ~}
 %{ endif ~}
 
 # Note: Dependencies and build will be handled by Docker

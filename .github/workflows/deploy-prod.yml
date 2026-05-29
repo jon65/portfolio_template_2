@@ -43,16 +43,19 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} << ENDSSH
             set -e
+            sudo chown -R ec2-user:ec2-user ${{ env.APP_DIR }}
+            git config --global --add safe.directory ${{ env.APP_DIR }}
             cd ${{ env.APP_DIR }}
-            
+
             # Pull latest code
             echo "=== Pulling latest code ==="
             git fetch origin prod
             git reset --hard origin/prod
             git clean -fd
             
-            # Run deployment script
+            # Run deployment script (git pull already done above)
             export APP_NAME=${{ env.APP_NAME }}
+            export SKIP_GIT_PULL=1
             bash /tmp/deploy.sh
           ENDSSH
       

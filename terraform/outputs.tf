@@ -40,12 +40,12 @@ output "elastic_ip" {
 
 output "route53_record" {
   description = "Route53 DNS record information"
-  value = var.domain_name != "" && length(data.aws_route53_zone.main) > 0 ? {
+  value = var.domain_name != "" && length(data.aws_route53_zone.main) > 0 ? tostring(jsonencode({
     zone_id = data.aws_route53_zone.main[0].zone_id
     name    = aws_route53_record.app[0].name
     type    = aws_route53_record.app[0].type
     records = aws_route53_record.app[0].records
-  } : "Route53 not configured"
+  })) : "Route53 not configured"
 }
 
 output "ssh_command" {

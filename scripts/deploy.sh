@@ -20,19 +20,28 @@ cd "$APP_DIR" || {
   exit 1
 }
 
-# Pull latest code (if in a git repository)
-if [ -d ".git" ]; then
+# Pull latest code - skip if CI/CD already handled it (SKIP_GIT_PULL=1)
+if [ -d ".git" ] && [ "${SKIP_GIT_PULL}" != "1" ]; then
   echo "=== Pulling latest code ==="
   CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "master")
   echo "Current branch: $CURRENT_BRANCH"
-  
-  # Fetch and reset to latest
+
   git fetch origin "$CURRENT_BRANCH" || git fetch origin
   git reset --hard "origin/$CURRENT_BRANCH" || git reset --hard HEAD
   git clean -fd
   echo "✅ Code updated"
   echo ""
 fi
+
+# Ensure Docker buildx is up to date (required for docker compose build)
+echo "=== Updating Docker buildx ==="
+BUILDX_VERSION=$(curl -s https://api.github.com/repos/docker/buildx/releases/latest | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
+sudo mkdir -p /usr/lib/docker/cli-plugins
+sudo curl -sSL "https://github.com/docker/buildx/releases/latest/download/buildx-v${BUILDX_VERSION}.linux-amd64" \
+  -o /usr/lib/docker/cli-plugins/docker-buildx
+sudo chmod +x /usr/lib/docker/cli-plugins/docker-buildx
+echo "✅ Buildx updated to v${BUILDX_VERSION}"
+echo ""
 
 # Verify docker-compose.yml exists
 if [ ! -f "docker-compose.yml" ]; then
