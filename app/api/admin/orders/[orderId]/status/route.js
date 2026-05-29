@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { updateOrderStatus } from '../../../lib/order-storage'
+import { updateOrderStatus } from '../../../../../lib/order-storage'
 
 /**
  * PATCH /api/admin/orders/[orderId]/status
@@ -11,7 +11,7 @@ export async function PATCH(
 ) {
   try {
     // Verify authentication
-    const { requireAuth } = await import('../../../../lib/auth')
+    const { requireAuth } = await import('../../../../../lib/auth')
     try {
       await requireAuth()
     } catch (error) {
