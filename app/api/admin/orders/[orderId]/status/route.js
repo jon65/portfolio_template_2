@@ -11,7 +11,7 @@ export async function PATCH(
 ) {
   try {
     // Verify authentication
-    const { requireAuth } = await import('../../lib/auth')
+    const { requireAuth } = await import('../../../../lib/auth')
     try {
       await requireAuth()
     } catch (error) {
