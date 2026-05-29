@@ -34,6 +34,16 @@ if [ -d ".git" ]; then
   echo ""
 fi
 
+# Ensure Docker buildx is up to date (required for docker compose build)
+echo "=== Updating Docker buildx ==="
+BUILDX_VERSION=$(curl -s https://api.github.com/repos/docker/buildx/releases/latest | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
+sudo mkdir -p /usr/lib/docker/cli-plugins
+sudo curl -sSL "https://github.com/docker/buildx/releases/latest/download/buildx-v${BUILDX_VERSION}.linux-amd64" \
+  -o /usr/lib/docker/cli-plugins/docker-buildx
+sudo chmod +x /usr/lib/docker/cli-plugins/docker-buildx
+echo "✅ Buildx updated to v${BUILDX_VERSION}"
+echo ""
+
 # Verify docker-compose.yml exists
 if [ ! -f "docker-compose.yml" ]; then
   echo "Error: docker-compose.yml not found in $APP_DIR"
